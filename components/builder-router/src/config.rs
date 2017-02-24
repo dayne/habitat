@@ -16,6 +16,7 @@
 
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
+use hab_net::config::{DEFAULT_ROUTER_LISTEN_PORT, DEFAULT_ROUTER_HEARTBEAT_PORT};
 use hab_core::config::{ConfigFile, ParseInto};
 use toml;
 
@@ -49,8 +50,9 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            listen_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 5562)),
-            heartbeat_port: 5563,
+            listen_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
+                                                          DEFAULT_ROUTER_LISTEN_PORT)),
+            heartbeat_port: DEFAULT_ROUTER_HEARTBEAT_PORT,
         }
     }
 }

@@ -90,6 +90,16 @@ impl Dispatcher for Worker {
             "OriginProjectDelete" => handlers::project_delete(message, sock, state),
             "OriginProjectGet" => handlers::project_get(message, sock, state),
             "OriginProjectUpdate" => handlers::project_update(message, sock, state),
+            "OriginPackageCreate" => handlers::origin_package_create(message, sock, state),
+            "OriginPackageGet" => handlers::origin_package_get(message, sock, state),
+            "OriginPackageLatestGet" => handlers::origin_package_latest_get(message, sock, state),
+            "OriginPackageListRequest" => handlers::origin_package_list(message, sock, state),
+            "OriginPackageUniqueListRequest" => {
+                handlers::origin_package_unique_list(message, sock, state)
+            }
+            "OriginPackageSearchRequest" => handlers::origin_package_search(message, sock, state),
+            "OriginChannelCreate" => handlers::origin_channel_create(message, sock, state),
+            "OriginChannelListRequest" => handlers::origin_channel_list(message, sock, state),
             _ => {
                 debug!("dispatch: unhandled message: {}", message.message_id());
                 Ok(())

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use protobuf;
 use protocol::originsrv;
 use originsrv::data_store::DataStore;
 
@@ -548,4 +549,573 @@ fn update_origin_project() {
     assert_eq!(updated_project.get_vcs_data(),
                sepultura.get_vcs_data(),
                "Should have the same vcs data");
+}
+
+#[test]
+fn create_origin_package() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin = ds.create_origin(&origin).expect("Should create origin").unwrap();
+
+    let mut ident = originsrv::OriginPackageIdent::new();
+    ident.set_origin("core".to_string());
+    ident.set_name("cacerts".to_string());
+    ident.set_version("2017.01.17".to_string());
+    ident.set_release("20170209064044".to_string());
+
+    let mut dep_idents = protobuf::RepeatedField::new();
+    let mut dep_ident = originsrv::OriginPackageIdent::new();
+    dep_ident.set_origin("dep_org".to_string());
+    dep_ident.set_name("dep_name".to_string());
+    dep_ident.set_version("1.1.1-dep".to_string());
+    dep_ident.set_release("20170101010102".to_string());
+    dep_idents.push(dep_ident);
+    let mut dep_ident2 = originsrv::OriginPackageIdent::new();
+    dep_ident2.set_origin("dep_org2".to_string());
+    dep_ident2.set_name("dep_name2".to_string());
+    dep_ident2.set_version("1.1.1-dep2".to_string());
+    dep_ident2.set_release("20170101010122".to_string());
+    dep_idents.push(dep_ident2);
+
+    let mut tdep_idents = protobuf::RepeatedField::new();
+    let mut tdep_ident = originsrv::OriginPackageIdent::new();
+    tdep_ident.set_origin("tdep_org".to_string());
+    tdep_ident.set_name("tdep_name".to_string());
+    tdep_ident.set_version("1.1.1-tdep".to_string());
+    tdep_ident.set_release("20170101010103".to_string());
+    tdep_idents.push(tdep_ident);
+    let mut tdep_ident2 = originsrv::OriginPackageIdent::new();
+    tdep_ident2.set_origin("tdep_org2".to_string());
+    tdep_ident2.set_name("tdep_name2".to_string());
+    tdep_ident2.set_version("1.1.1-tdep2".to_string());
+    tdep_ident2.set_release("20170101010123".to_string());
+    tdep_idents.push(tdep_ident2);
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(5);
+    package.set_origin_id(origin.get_id());
+    package.set_ident(ident);
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_deps(dep_idents);
+    package.set_tdeps(tdep_idents);
+    package.set_config("config".to_string());
+    package.set_target("x86_64-linux".to_string());
+    package.set_exposes(vec![1, 2]);
+
+    ds.create_origin_package(&package).expect("Failed to create origin package");
+}
+
+#[test]
+fn get_origin_package() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin = ds.create_origin(&origin).expect("Should create origin").unwrap();
+
+    let mut ident = originsrv::OriginPackageIdent::new();
+    ident.set_origin("core".to_string());
+    ident.set_name("cacerts".to_string());
+    ident.set_version("2017.01.17".to_string());
+    ident.set_release("20170209064044".to_string());
+
+    let mut dep_idents = protobuf::RepeatedField::new();
+    let mut dep_ident = originsrv::OriginPackageIdent::new();
+    dep_ident.set_origin("dep_org".to_string());
+    dep_ident.set_name("dep_name".to_string());
+    dep_ident.set_version("1.1.1-dep".to_string());
+    dep_ident.set_release("20170101010102".to_string());
+    dep_idents.push(dep_ident);
+    let mut dep_ident2 = originsrv::OriginPackageIdent::new();
+    dep_ident2.set_origin("dep_org2".to_string());
+    dep_ident2.set_name("dep_name2".to_string());
+    dep_ident2.set_version("1.1.1-dep2".to_string());
+    dep_ident2.set_release("20170101010122".to_string());
+    dep_idents.push(dep_ident2);
+
+    let mut tdep_idents = protobuf::RepeatedField::new();
+    let mut tdep_ident = originsrv::OriginPackageIdent::new();
+    tdep_ident.set_origin("tdep_org".to_string());
+    tdep_ident.set_name("tdep_name".to_string());
+    tdep_ident.set_version("1.1.1-tdep".to_string());
+    tdep_ident.set_release("20170101010103".to_string());
+    tdep_idents.push(tdep_ident);
+    let mut tdep_ident2 = originsrv::OriginPackageIdent::new();
+    tdep_ident2.set_origin("tdep_org2".to_string());
+    tdep_ident2.set_name("tdep_name2".to_string());
+    tdep_ident2.set_version("1.1.1-tdep2".to_string());
+    tdep_ident2.set_release("20170101010123".to_string());
+    tdep_idents.push(tdep_ident2);
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(5);
+    package.set_origin_id(origin.get_id());
+    package.set_ident(ident.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_deps(dep_idents.clone());
+    package.set_tdeps(tdep_idents.clone());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-linux".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package).expect("Failed to create origin package");
+
+    let mut package_get = originsrv::OriginPackageGet::new();
+    package_get.set_ident(ident.clone());
+    let result =
+        ds.get_origin_package(&package_get).expect("Failed to get origin package").unwrap();
+
+    assert_eq!(result.get_owner_id(), 5);
+    assert_eq!(result.get_origin_id(), origin.get_id());
+    assert_eq!(result.get_ident().to_string(), ident.to_string());
+    assert_eq!(result.get_checksum(), "checksum".to_string());
+    assert_eq!(result.get_manifest(), "manifest".to_string());
+    assert_eq!(result.get_config(), "config".to_string());
+    assert_eq!(result.get_target(), "x86_64-linux".to_string());
+    assert_eq!(result.get_exposes().to_vec(), vec![1, 2]);
+    assert_eq!(result.get_deps().to_vec(), dep_idents.to_vec());
+    assert_eq!(result.get_tdeps().to_vec(), tdep_idents.to_vec());
+}
+
+#[test]
+fn get_latest_package() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin = ds.create_origin(&origin).expect("Should create origin").unwrap();
+
+    let mut ident1 = originsrv::OriginPackageIdent::new();
+    ident1.set_origin("core".to_string());
+    ident1.set_name("cacerts".to_string());
+    ident1.set_version("2017.01.17".to_string());
+    ident1.set_release("20170209064044".to_string());
+
+    let mut ident2 = originsrv::OriginPackageIdent::new();
+    ident2.set_origin("core".to_string());
+    ident2.set_name("cacerts".to_string());
+    ident2.set_version("2017.01.18".to_string());
+    ident2.set_release("20170209064044".to_string());
+
+    let mut ident3 = originsrv::OriginPackageIdent::new();
+    ident3.set_origin("core".to_string());
+    ident3.set_name("cacerts".to_string());
+    ident3.set_version("2017.01.18".to_string());
+    ident3.set_release("20170209064045".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(5);
+    package.set_origin_id(origin.get_id());
+    package.set_ident(ident1.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident2.clone());
+    package.set_target("x86_64-linux".to_string());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident3.clone());
+    package.set_target("x86_64-linux".to_string());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    let mut package_get = originsrv::OriginPackageLatestGet::new();
+    let mut search_ident = originsrv::OriginPackageIdent::new();
+    search_ident.set_origin("core".to_string());
+    search_ident.set_name("cacerts".to_string());
+    package_get.set_ident(search_ident.clone());
+    package_get.set_target("x86_64-windows".to_string());
+    let result1 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
+
+    search_ident.set_version("2017.01.18".to_string());
+    package_get.set_ident(search_ident.clone());
+    package_get.set_target("x86_64-linux".to_string());
+    let result2 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
+
+    package_get.set_ident(search_ident.clone());
+    package_get.set_target("x86_64-windows".to_string());
+    let result3 = ds.get_origin_package_latest(&package_get.clone()).unwrap();
+
+    assert_eq!(result1.unwrap().to_string(), ident1.to_string());
+    assert_eq!(result2.unwrap().to_string(), ident3.to_string());
+    assert!(result3.is_none());
+}
+
+#[test]
+fn create_origin_channel() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin = ds.create_origin(&origin).expect("Should create origin").unwrap();
+
+    let mut ident1 = originsrv::OriginPackageIdent::new();
+    ident1.set_origin("core".to_string());
+    ident1.set_name("cacerts".to_string());
+    ident1.set_version("2017.01.17".to_string());
+    ident1.set_release("20170209064044".to_string());
+
+    let mut ident2 = originsrv::OriginPackageIdent::new();
+    ident2.set_origin("core".to_string());
+    ident2.set_name("cacerts".to_string());
+    ident2.set_version("2017.01.18".to_string());
+    ident2.set_release("20170209064044".to_string());
+
+    let mut ident3 = originsrv::OriginPackageIdent::new();
+    ident3.set_origin("core".to_string());
+    ident3.set_name("cacerts".to_string());
+    ident3.set_version("2017.01.18".to_string());
+    ident3.set_release("20170209064045".to_string());
+
+    let mut ident4 = originsrv::OriginPackageIdent::new();
+    ident4.set_origin("core".to_string());
+    ident4.set_name("cacerts2".to_string());
+    ident4.set_version("2017.01.19".to_string());
+    ident4.set_release("20170209064045".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(5);
+    package.set_origin_id(origin.get_id());
+    package.set_ident(ident1.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident2.clone());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident3.clone());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident4.clone());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    let mut opl = originsrv::OriginPackageListRequest::new();
+    opl.set_origin_id(origin.get_id());
+    opl.set_start(1);
+    opl.set_stop(2);
+    let result = ds.list_origin_package_for_origin(&opl.clone())
+        .expect("Could not get the packages from the database");
+    assert_eq!(result.get_idents().len(), 2);
+    assert_eq!(result.get_start(), 1);
+    assert_eq!(result.get_stop(), 2);
+    assert_eq!(result.get_count(), 4);
+    let pkg1 = result.get_idents()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(pkg1.to_string(), ident2.to_string());
+    let pkg2 = result.get_idents()
+        .iter()
+        .nth(1)
+        .unwrap();
+    assert_eq!(pkg2.to_string(), ident3.to_string());
+
+    opl.set_start(1);
+    opl.set_stop(20);
+    let result2 = ds.list_origin_package_for_origin(&opl)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result2.get_idents().len(), 3);
+    assert_eq!(result2.get_start(), 1);
+    assert_eq!(result2.get_stop(), 3);
+    assert_eq!(result2.get_count(), 4);
+}
+
+#[test]
+fn list_origin_package_for_origin_unique() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin1 = ds.create_origin(&origin.clone()).expect("Should create origin").unwrap();
+
+    origin.set_name(String::from("core2"));
+    let origin2 = ds.create_origin(&origin).expect("Should create origin").unwrap();
+
+    let mut ident1 = originsrv::OriginPackageIdent::new();
+    ident1.set_origin("core".to_string());
+    ident1.set_name("cacerts".to_string());
+    ident1.set_version("2017.01.17".to_string());
+    ident1.set_release("20170209064044".to_string());
+
+    let mut ident2 = originsrv::OriginPackageIdent::new();
+    ident2.set_origin("core".to_string());
+    ident2.set_name("cacerts".to_string());
+    ident2.set_version("2017.01.18".to_string());
+    ident2.set_release("20170209064044".to_string());
+
+    let mut ident3 = originsrv::OriginPackageIdent::new();
+    ident3.set_origin("core2".to_string());
+    ident3.set_name("cacerts".to_string());
+    ident3.set_version("2017.01.18".to_string());
+    ident3.set_release("20170209064045".to_string());
+
+    let mut ident4 = originsrv::OriginPackageIdent::new();
+    ident4.set_origin("core".to_string());
+    ident4.set_name("cacerts2".to_string());
+    ident4.set_version("2017.01.19".to_string());
+    ident4.set_release("20170209064045".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(5);
+    package.set_origin_id(origin1.get_id());
+    package.set_ident(ident1.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident2.clone());
+    package.set_origin_id(origin1.get_id());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident3.clone());
+    package.set_origin_id(origin2.get_id());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident4.clone());
+    package.set_origin_id(origin1.get_id());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    let mut opl = originsrv::OriginPackageUniqueListRequest::new();
+    opl.set_origin("core".to_string());
+    opl.set_start(0);
+    opl.set_stop(2);
+    let result = ds.list_origin_package_unique_for_origin(&opl.clone())
+        .expect("Could not get the packages from the database");
+    assert_eq!(result.get_idents().len(), 2);
+    assert_eq!(result.get_start(), 0);
+    assert_eq!(result.get_stop(), 1);
+    assert_eq!(result.get_count(), 2);
+    let pkg1 = result.get_idents()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(pkg1.to_string(), "core/cacerts".to_string());
+    let pkg2 = result.get_idents()
+        .iter()
+        .nth(1)
+        .unwrap();
+    assert_eq!(pkg2.to_string(), "core/cacerts2".to_string());
+
+    opl.set_origin("core2".to_string());
+    opl.set_start(0);
+    opl.set_stop(20);
+    let result2 = ds.list_origin_package_unique_for_origin(&opl)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result2.get_idents().len(), 1);
+    assert_eq!(result2.get_start(), 0);
+    assert_eq!(result2.get_stop(), 0);
+    assert_eq!(result2.get_count(), 1);
+    let pkg1 = result2.get_idents()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(pkg1.to_string(), "core2/cacerts".to_string());
+}
+
+#[test]
+fn search_origin_package_for_origin() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("core"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    let origin1 = ds.create_origin(&origin.clone()).expect("Should create origin").unwrap();
+
+    origin.set_name(String::from("core2"));
+    let origin2 = ds.create_origin(&origin).expect("Should create origin").unwrap();
+
+    let mut ident1 = originsrv::OriginPackageIdent::new();
+    ident1.set_origin("core".to_string());
+    ident1.set_name("red".to_string());
+    ident1.set_version("2017.01.17".to_string());
+    ident1.set_release("20170209064044".to_string());
+
+    let mut ident2 = originsrv::OriginPackageIdent::new();
+    ident2.set_origin("core".to_string());
+    ident2.set_name("red".to_string());
+    ident2.set_version("2017.01.18".to_string());
+    ident2.set_release("20170209064044".to_string());
+
+    let mut ident3 = originsrv::OriginPackageIdent::new();
+    ident3.set_origin("core2".to_string());
+    ident3.set_name("red".to_string());
+    ident3.set_version("2017.01.18".to_string());
+    ident3.set_release("20170209064045".to_string());
+
+    let mut ident4 = originsrv::OriginPackageIdent::new();
+    ident4.set_origin("core".to_string());
+    ident4.set_name("red_dog".to_string());
+    ident4.set_version("2017.01.19".to_string());
+    ident4.set_release("20170209064045".to_string());
+
+    let mut package = originsrv::OriginPackageCreate::new();
+    package.set_owner_id(5);
+    package.set_origin_id(origin1.get_id());
+    package.set_ident(ident1.clone());
+    package.set_checksum("checksum".to_string());
+    package.set_manifest("manifest".to_string());
+    package.set_config("config".to_string());
+    package.set_target("x86_64-windows".to_string());
+    package.set_exposes(vec![1, 2]);
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident2.clone());
+    package.set_origin_id(origin1.get_id());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident3.clone());
+    package.set_origin_id(origin2.get_id());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    package.set_ident(ident4.clone());
+    package.set_origin_id(origin1.get_id());
+    ds.create_origin_package(&package.clone()).expect("Failed to create origin package");
+
+    let mut ops = originsrv::OriginPackageSearchRequest::new();
+    ops.set_origin("core".to_string());
+    ops.set_query("red_".to_string());
+    ops.set_start(0);
+    ops.set_stop(2);
+    let result = ds.search_origin_package_for_origin(&ops.clone())
+        .expect("Could not get the packages from the database");
+    assert_eq!(result.get_idents().len(), 1);
+    assert_eq!(result.get_start(), 0);
+    assert_eq!(result.get_stop(), 0);
+    assert_eq!(result.get_count(), 1);
+    let pkg1 = result.get_idents()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(pkg1.to_string(), ident4.to_string());
+
+    ops.set_query("red".to_string());
+    ops.set_start(1);
+    ops.set_stop(20);
+    let result2 = ds.search_origin_package_for_origin(&ops)
+        .expect("Could not get the packages from the database");
+    assert_eq!(result2.get_idents().len(), 2);
+    assert_eq!(result2.get_start(), 1);
+    assert_eq!(result2.get_stop(), 2);
+    assert_eq!(result2.get_count(), 3);
+    let pkg1 = result2.get_idents()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(pkg1.to_string(), ident2.to_string());
+    let pkg2 = result2.get_idents()
+        .iter()
+        .nth(1)
+        .unwrap();
+    assert_eq!(pkg2.to_string(), ident4.to_string());
+}
+
+#[test]
+fn create_origin_channel() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    ds.create_origin_channel(&oscc).expect("Failed to create origin public key");
+
+    // Create new database connection
+    let conn = ds.pool.get().expect("Cannot get connection from pool");
+
+    let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
+        .expect("Failed to query database for number of channels");
+    let count: i64 = rows.iter()
+        .nth(0)
+        .unwrap()
+        .get(0);
+    assert_eq!(count, 1);
+}
+
+#[test]
+fn list_origin_channel() {
+    let pool = pool!();
+    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    ds.setup().expect("Failed to migrate data");
+    let mut origin = originsrv::OriginCreate::new();
+    origin.set_name(String::from("neurosis"));
+    origin.set_owner_id(1);
+    origin.set_owner_name(String::from("scottkelly"));
+    ds.create_origin(&origin).expect("Should create origin");
+
+    let neurosis = ds.get_origin_by_name("neurosis")
+        .expect("Could not retrieve origin")
+        .expect("Origin does not exist");
+
+    // Create a new origin channel
+    let mut oscc = originsrv::OriginChannelCreate::new();
+    oscc.set_origin_id(neurosis.get_id());
+    oscc.set_origin_name(neurosis.get_name().to_string());
+    oscc.set_name(String::from("eve"));
+    oscc.set_owner_id(1);
+    ds.create_origin_channel(&oscc).expect("Failed to create origin channel");
+    let mut oscc2 = originsrv::OriginChannelCreate::new();
+    oscc2.set_origin_id(neurosis.get_id());
+    oscc2.set_origin_name(neurosis.get_name().to_string());
+    oscc2.set_name(String::from("online"));
+    oscc2.set_owner_id(1);
+    ds.create_origin_channel(&oscc2).expect("Failed to create origin channel");
+
+    let mut occl = originsrv::OriginChannelListRequest::new();
+    occl.set_origin_id(neurosis.get_id());
+    let channels =
+        ds.list_origin_channels(&occl).expect("Could not get the channels from the database");
+    let channel_1 = channels.get_channels()
+        .iter()
+        .nth(0)
+        .unwrap();
+    assert_eq!(channel_1.get_name(), "eve");
+    let channel_2 = channels.get_channels()
+        .iter()
+        .nth(1)
+        .unwrap();
+    assert_eq!(channel_2.get_name(), "online");
 }

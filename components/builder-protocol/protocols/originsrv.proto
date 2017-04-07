@@ -182,3 +182,113 @@ message OriginProjectGet {
   optional string name = 1;
 }
 
+message OriginPackageGet {
+  optional OriginPackageIdent ident = 1;
+}
+
+message OriginPackageLatestGet {
+  optional OriginPackageIdent ident = 2;
+  optional string target = 3;
+}
+
+message OriginPackageIdent {
+  optional string origin = 1;
+  optional string name = 2;
+  optional string version = 3;
+  optional string release = 4;
+}
+
+message OriginPackageCreate {
+  optional uint64 owner_id = 1;
+  optional uint64 origin_id = 2;
+  optional OriginPackageIdent ident = 3;
+  optional string checksum = 4;
+  optional string manifest = 5;
+  repeated OriginPackageIdent deps = 6;
+  repeated OriginPackageIdent tdeps = 7;
+  repeated uint32 exposes = 8 [packed=true];
+  optional string config = 9;
+  optional string target = 10;
+}
+
+message OriginPackage {
+  optional uint64 id = 1;
+  optional uint64 owner_id = 2;
+  optional uint64 origin_id = 3;
+  optional OriginPackageIdent ident = 4;
+  optional string checksum = 5;
+  optional string manifest = 6;
+  repeated OriginPackageIdent deps = 7;
+  repeated OriginPackageIdent tdeps = 8;
+  repeated uint32 exposes = 9 [packed=true];
+  optional string config = 10;
+  optional string target = 11;
+}
+
+message OriginPackageListRequest {
+  optional uint64 origin_id = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+}
+
+message OriginPackageSearchRequest {
+  optional string origin = 1;
+  optional string query = 2;
+  optional uint64 start = 3;
+  optional uint64 stop = 4;
+}
+
+message OriginPackageListResponse {
+  optional uint64 origin_id = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+  optional uint64 count = 4;
+  repeated OriginPackageIdent idents = 5;
+}
+
+message OriginPackageUniqueListRequest {
+  optional string origin = 1;
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+}
+
+message OriginPackageUniqueListResponse {
+  optional uint64 start = 2;
+  optional uint64 stop = 3;
+  optional uint64 count = 4;
+  repeated OriginPackageIdent idents = 5;
+}
+
+message OriginKeyIdent {
+  optional string origin = 1;
+  optional string revision = 2;
+  optional string location = 3;
+}
+
+message OriginChannel {
+  optional uint64 id = 1;
+  optional uint64 origin_id = 2;
+  optional string name = 3;
+  optional uint64 owner_id = 4;
+}
+
+message OriginChannelIdent {
+  optional string origin = 1;
+  optional string name = 2;
+}
+
+message OriginChannelCreate {
+  optional uint64 origin_id = 1;
+  optional string origin_name = 2;
+  optional string name = 3;
+  optional uint64 owner_id = 4;
+}
+
+message OriginChannelListRequest {
+  optional uint64 origin_id = 1;
+}
+
+message OriginChannelListResponse {
+  optional uint64 origin_id = 1;
+  repeated OriginChannel channels = 2;
+}

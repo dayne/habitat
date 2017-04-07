@@ -46,6 +46,12 @@ pub enum Error {
     OriginInvitationListForOrigin(postgres::error::Error),
     OriginInvitationListForAccount(postgres::error::Error),
     OriginInvitationValidate(postgres::error::Error),
+    OriginPackageCreate(postgres::error::Error),
+    OriginPackageGet(postgres::error::Error),
+    OriginPackageLatestGet(postgres::error::Error),
+    OriginPackageList(postgres::error::Error),
+    OriginPackageSearch(postgres::error::Error),
+    OriginPackageUniqueList(postgres::error::Error),
     OriginProjectCreate(postgres::error::Error),
     OriginProjectDelete(postgres::error::Error),
     OriginProjectGet(postgres::error::Error),
@@ -60,6 +66,8 @@ pub enum Error {
     OriginAccountInOrigin(postgres::error::Error),
     SyncInvitations(postgres::error::Error),
     SyncInvitationsUpdate(postgres::error::Error),
+    OriginChannelCreate(postgres::error::Error),
+    OriginChannelList(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -112,7 +120,23 @@ impl fmt::Display for Error {
                 format!("Error validating origin invitation for an account in database, {}",
                         e)
             }
-
+            Error::OriginPackageCreate(ref e) => {
+                format!("Error creating package in database, {}", e)
+            }
+            Error::OriginPackageGet(ref e) => format!("Error getting package in database, {}", e),
+            Error::OriginPackageLatestGet(ref e) => {
+                format!("Error getting latest package in database, {}", e)
+            }
+            Error::OriginPackageList(ref e) => {
+                format!("Error getting list of packages for this origin, {}", e)
+            }
+            Error::OriginPackageSearch(ref e) => {
+                format!("Error searching list of packages for this origin, {}", e)
+            }
+            Error::OriginPackageUniqueList(ref e) => {
+                format!("Error getting unique list of packages for this origin, {}",
+                        e)
+            }
             Error::OriginProjectCreate(ref e) => {
                 format!("Error creating project in database, {}", e)
             }
@@ -154,6 +178,11 @@ impl fmt::Display for Error {
             }
             Error::SyncInvitationsUpdate(ref e) => {
                 format!("Error update invitation sync for account, {}", e)
+            Error::OriginChannelCreate(ref e) => {
+                format!("Error checking if this account is in an origin, {}", e)
+            }
+            Error::OriginChannelList(ref e) => {
+                format!("Error checking if this account is in an origin, {}", e)
             }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
@@ -183,6 +212,12 @@ impl error::Error for Error {
             Error::OriginInvitationListForOrigin(ref err) => err.description(),
             Error::OriginInvitationListForAccount(ref err) => err.description(),
             Error::OriginInvitationValidate(ref err) => err.description(),
+            Error::OriginPackageCreate(ref err) => err.description(),
+            Error::OriginPackageGet(ref err) => err.description(),
+            Error::OriginPackageLatestGet(ref err) => err.description(),
+            Error::OriginPackageList(ref err) => err.description(),
+            Error::OriginPackageSearch(ref err) => err.description(),
+            Error::OriginPackageUniqueList(ref err) => err.description(),
             Error::OriginProjectCreate(ref err) => err.description(),
             Error::OriginProjectDelete(ref err) => err.description(),
             Error::OriginProjectGet(ref err) => err.description(),
@@ -197,6 +232,8 @@ impl error::Error for Error {
             Error::OriginAccountInOrigin(ref err) => err.description(),
             Error::SyncInvitations(ref err) => err.description(),
             Error::SyncInvitationsUpdate(ref err) => err.description(),
+            Error::OriginChannelCreate(ref err) => err.description(),
+            Error::OriginChannelList(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }

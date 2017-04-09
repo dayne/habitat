@@ -48,7 +48,7 @@ pub trait GitHubOAuth {
     fn github_client_secret(&self) -> &str;
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct GitHubCfg {
     /// URL to GitHub API
     pub url: String,
@@ -70,7 +70,7 @@ impl Default for GitHubCfg {
 
 pub type RoutersCfg = Vec<RouterAddr>;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RouterAddr {
     pub host: IpAddr,
     pub port: u16,

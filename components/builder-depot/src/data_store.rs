@@ -127,8 +127,10 @@ impl ChannelsTable {
         let key = format!("{}/{}", origin, channel);
 
         if let Some(packages) = self.channel_package_map.get(&key) {
-            let mut pkgs: Vec<&originsrv::OriginPackageIdent> =
-                packages.iter().filter(|pkg| pkg.to_string().contains(ident)).collect();
+            let mut pkgs: Vec<&originsrv::OriginPackageIdent> = packages
+                .iter()
+                .filter(|pkg| pkg.to_string().contains(ident))
+                .collect();
 
             if pkgs.is_empty() {
                 return None;

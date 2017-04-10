@@ -452,7 +452,9 @@ pub fn origin_package_unique_list(req: &mut Envelope,
                                   state: &mut ServerState)
                                   -> Result<()> {
     let msg: proto::OriginPackageUniqueListRequest = try!(req.parse_msg());
-    match state.datastore.list_origin_package_unique_for_origin(&msg) {
+    match state
+              .datastore
+              .list_origin_package_unique_for_origin(&msg) {
         Ok(ref opulr) => try!(req.reply_complete(sock, opulr)),
         Err(err) => {
             error!("OriginPackageUniqueList, err={:?}", err);

@@ -17,10 +17,12 @@ use db::migration::Migrator;
 use error::Result;
 
 pub fn migrate(migrator: &mut Migrator) -> Result<()> {
-    migrator.migrate("originsrv",
-                     r#"CREATE SEQUENCE IF NOT EXISTS origin_channel_id_seq;"#)?;
-    migrator.migrate("originsrv",
-                     r#"CREATE TABLE origin_channels (
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE SEQUENCE IF NOT EXISTS origin_channel_id_seq;"#)?;
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE TABLE origin_channels (
                     id bigint PRIMARY KEY DEFAULT next_id_v1('origin_channel_id_seq'),
                     origin_id bigint REFERENCES origins(id),
                     owner_id bigint,
@@ -28,8 +30,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     created_at timestamptz DEFAULT now(),
                     updated_at timestamptz
              )"#)?;
-    migrator.migrate("originsrv",
-                     r#"CREATE OR REPLACE FUNCTION insert_origin_channel_v1 (
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION insert_origin_channel_v1 (
                     occ_origin_id bigint,
                     occ_owner_id bigint,
                     occ_name text
@@ -41,8 +44,9 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                          RETURN;
                      END
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
-    migrator.migrate("originsrv",
-                     r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v1 (
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v1 (
                    occ_origin_id bigint
                  ) RETURNS SETOF origin_channels AS $$
                     BEGIN

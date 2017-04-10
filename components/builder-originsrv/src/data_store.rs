@@ -565,7 +565,9 @@ impl DataStore {
         let conn = self.pool.get(opl)?;
         let limit = opl.get_stop() - opl.get_start() + 1;
         let rows = conn.query("SELECT * FROM get_origin_packages_unique_for_origin_v1($1, $2, $3)",
-                              &[&opl.get_origin(), &(limit as i64), &(opl.get_start() as i64)])
+                              &[&opl.get_origin(),
+                                &(limit as i64),
+                                &(opl.get_start() as i64)])
             .map_err(Error::OriginPackageUniqueList)?;
 
         let mut response = originsrv::OriginPackageUniqueListResponse::new();
@@ -674,7 +676,9 @@ impl DataStore {
                                 &(occ.get_owner_id() as i64),
                                 &occ.get_name()])
             .map_err(Error::OriginChannelCreate)?;
-        let row = rows.iter().nth(0).expect("Insert returns row, but no row present");
+        let row = rows.iter()
+            .nth(0)
+            .expect("Insert returns row, but no row present");
         Ok(self.row_to_origin_channel(row))
     }
 

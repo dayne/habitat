@@ -611,7 +611,8 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<DepotUtil>>().expect("depot not found");
+    let lock = req.get::<persistent::State<DepotUtil>>()
+        .expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
@@ -785,7 +786,9 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
                                            format!("/pkgs/{}/download", package.get_ident())));
         let mut base_url: url::Url = req.url.clone().into();
         base_url.set_path(&format!("pkgs/{}/download", package.get_ident()));
-        response.headers.set(headers::Location(format!("{}", base_url)));
+        response
+            .headers
+            .set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
         info!("Ident mismatch, expected={:?}, got={:?}",
@@ -916,7 +919,8 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<DepotUtil>>().expect("depot not found");
+    let lock = req.get::<persistent::State<DepotUtil>>()
+        .expect("depot not found");
     let depot = lock.read().expect("depot read lock is poisoned");
     let mut ident_req = OriginPackageGet::new();
     {
@@ -941,7 +945,8 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                             disposition: DispositionType::Attachment,
                             parameters: vec![DispositionParam::Filename(Charset::Iso_8859_1,
                                                                         None,
-                                                                        archive.file_name()
+                                                                        archive
+                                                                            .file_name()
                                                                             .as_bytes()
                                                                             .to_vec())],
                         };
@@ -1105,7 +1110,8 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 
     match channel {
         Some(channel) => {
-            let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+            let lock = req.get::<persistent::State<Depot>>()
+                .expect("depot not found");
             let mut depot = lock.write().expect("depot read lock is poisoned");
 
             // let's make sure this channel actually exists
@@ -1209,17 +1215,17 @@ fn list_channels(req: &mut Request) -> IronResult<Response> {
             let list: Vec<OriginChannelIdent> = list.get_channels()
                 .iter()
                 .map(|channel| {
-                    let mut ident = OriginChannelIdent::new();
-                    ident.set_name(channel.get_name().to_string());
-                    ident
-                })
+                         let mut ident = OriginChannelIdent::new();
+                         ident.set_name(channel.get_name().to_string());
+                         ident
+                     })
                 .collect();
             let body = serde_json::to_string(&list).unwrap();
             let mut response = Response::with((status::Ok, body));
             dont_cache_response(&mut response);
             Ok(response)
         }
-				Err(err) => Ok(render_net_error(&err)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -1228,7 +1234,7 @@ fn create_channel(req: &mut Request) -> IronResult<Response> {
     let origin: String;
     let channel: String;
 
-   {
+    {
         let session = req.extensions.get::<Authenticated>().unwrap();
         session_id = session.get_id();
         let params = req.extensions.get::<Router>().unwrap();
@@ -1321,7 +1327,8 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
 
     let qualified = ident.fully_qualified();
     if let Some(channel) = channel {
-        let lock = req.get::<persistent::State<Depot>>().expect("depot not found");
+        let lock = req.get::<persistent::State<Depot>>()
+            .expect("depot not found");
         let mut depot = lock.write().expect("depot read lock is poisoned");
         // let's make sure this channel actually exists
         if !depot
@@ -1332,7 +1339,10 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
         }
 
         if !qualified {
-            match depot.datastore.channels.latest(&origin, channel.as_str(), &ident.to_string()) {
+            match depot
+                      .datastore
+                      .channels
+                      .latest(&origin, channel.as_str(), &ident.to_string()) {
                 Some(ident) => {
                     let mut request = OriginPackageGet::new();
                     request.set_ident(ident.clone());
@@ -1466,9 +1476,11 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
                 Response::with((status::Ok, body))
             };
 
-            response.headers.set(ContentType(Mime(TopLevel::Application,
-                                                  SubLevel::Json,
-                                                  vec![(Attr::Charset, Value::Utf8)])));
+            response
+                .headers
+                .set(ContentType(Mime(TopLevel::Application,
+                                      SubLevel::Json,
+                                      vec![(Attr::Charset, Value::Utf8)])));
             dont_cache_response(&mut response);
             Ok(response)
         }
@@ -1855,7 +1867,10 @@ mod test {
 
 
         let mut config = Config::default();
-        config.path = env::temp_dir().join("depot-tests").to_string_lossy().to_string();
+        config.path = env::temp_dir()
+            .join("depot-tests")
+            .to_string_lossy()
+            .to_string();
         let depot = DepotUtil::new(config);
         req.extensions.insert::<Authenticated>(Session::new());
         req.extensions.insert::<TestableBroker>(broker);
@@ -1926,7 +1941,10 @@ mod test {
     fn upload_package() {
         //Remove file saved from previous test
         let mut config = Config::default();
-        config.path = env::temp_dir().join("depot-tests").to_string_lossy().to_string();
+        config.path = env::temp_dir()
+            .join("depot-tests")
+            .to_string_lossy()
+            .to_string();
         let depot = DepotUtil::new(config);
         let mut ident = OriginPackageIdent::new();
         ident.set_origin("core".to_string());
@@ -1953,7 +1971,10 @@ mod test {
         //inject hart fixture to upload
         let mut body: Vec<u8> = Vec::new();
         let path = hart_file("core-cacerts-2017.01.17-20170209064044-x86_64-windows.hart");
-        File::open(&path).unwrap().read_to_end(&mut body).unwrap();
+        File::open(&path)
+            .unwrap()
+            .read_to_end(&mut body)
+            .unwrap();
         let checksum = hash::hash_file(&path).unwrap();
 
         let (resp, msgs) = iron_request(method::Post,
@@ -1994,7 +2015,10 @@ mod test {
 
         let mut body: Vec<u8> = Vec::new();
         let path = hart_file("core-cacerts-2017.01.17-20170209064045-x86_64-windows.hart");
-        File::open(&path).unwrap().read_to_end(&mut body).unwrap();
+        File::open(&path)
+            .unwrap()
+            .read_to_end(&mut body)
+            .unwrap();
         let checksum = hash::hash_file(&path).unwrap();
 
         iron_request(method::Post,
@@ -2446,7 +2470,7 @@ mod test {
 
         broker.setup::<OriginChannelListRequest, OriginChannelListResponse>(&channel_res);
 
-			  let (response, _) = iron_request(method::Get,
+        let (response, _) = iron_request(method::Get,
                                          "http://localhost/channels/org",
                                          &mut Vec::new(),
                                          Headers::new(),
@@ -2483,11 +2507,11 @@ mod test {
 
         broker.setup::<OriginChannelCreate, OriginChannel>(&channel_res);
 
-			  let (resp, msgs) = iron_request(method::Post,
-                                         "http://localhost/channels/neurosis/my_channel",
-                                         &mut Vec::new(),
-                                         Headers::new(),
-                                         broker);
+        let (resp, msgs) = iron_request(method::Post,
+                                        "http://localhost/channels/neurosis/my_channel",
+                                        &mut Vec::new(),
+                                        Headers::new(),
+                                        broker);
         let response = resp.unwrap();
         assert_eq!(response.status, Some(status::Created));
 

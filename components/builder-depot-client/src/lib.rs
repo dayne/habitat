@@ -219,7 +219,9 @@ impl Client {
     }
 
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<originsrv::OriginKeyIdent>> {
-        let mut res = try!(self.inner.get(&format!("origins/{}/keys", origin)).send());
+        let mut res = try!(self.inner
+                               .get(&format!("origins/{}/keys", origin))
+                               .send());
         debug!("Response: {:?}", res);
 
         if res.status != StatusCode::Ok {

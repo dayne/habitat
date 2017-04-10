@@ -178,6 +178,7 @@ impl fmt::Display for Error {
             }
             Error::SyncInvitationsUpdate(ref e) => {
                 format!("Error update invitation sync for account, {}", e)
+            }
             Error::OriginChannelCreate(ref e) => {
                 format!("Error checking if this account is in an origin, {}", e)
             }

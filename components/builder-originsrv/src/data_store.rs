@@ -484,7 +484,7 @@ impl DataStore {
     pub fn create_origin_package(&self,
                                  opc: &originsrv::OriginPackageCreate)
                                  -> Result<originsrv::OriginPackage> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opc)?;
         let ident = opc.get_ident();
         let rows = conn.query("SELECT * FROM insert_origin_package_v1($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
                               &[&(opc.get_origin_id() as i64),
@@ -506,7 +506,7 @@ impl DataStore {
     pub fn get_origin_package(&self,
                               opc: &originsrv::OriginPackageGet)
                               -> Result<Option<originsrv::OriginPackage>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opc)?;
         let rows = conn.query("SELECT * FROM get_origin_package_v1($1)",
                               &[&opc.get_ident().to_string()])
             .map_err(Error::OriginPackageGet)?;
@@ -521,7 +521,7 @@ impl DataStore {
     pub fn get_origin_package_latest(&self,
                                      opc: &originsrv::OriginPackageLatestGet)
                                      -> Result<Option<originsrv::OriginPackageIdent>> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opc)?;
         let rows = conn.query("SELECT * FROM get_origin_package_latest_v1($1, $2)",
                               &[&opc.get_ident().to_string(), &opc.get_target()])
             .map_err(Error::OriginPackageLatestGet)?;
@@ -536,7 +536,7 @@ impl DataStore {
     pub fn list_origin_package_for_origin(&self,
                                           opl: &originsrv::OriginPackageListRequest)
                                           -> Result<originsrv::OriginPackageListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opl)?;
         let limit = opl.get_stop() - opl.get_start() + 1;
         let rows = conn.query("SELECT * FROM get_origin_packages_for_origin_v1($1, $2, $3)",
                               &[&(opl.get_origin_id() as i64),
@@ -562,7 +562,7 @@ impl DataStore {
         (&self,
          opl: &originsrv::OriginPackageUniqueListRequest)
          -> Result<originsrv::OriginPackageUniqueListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(opl)?;
         let limit = opl.get_stop() - opl.get_start() + 1;
         let rows = conn.query("SELECT * FROM get_origin_packages_unique_for_origin_v1($1, $2, $3)",
                               &[&opl.get_origin(), &(limit as i64), &(opl.get_start() as i64)])
@@ -587,7 +587,7 @@ impl DataStore {
     pub fn search_origin_package_for_origin(&self,
                                             ops: &originsrv::OriginPackageSearchRequest)
                                             -> Result<originsrv::OriginPackageListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(ops)?;
         let limit = ops.get_stop() - ops.get_start() + 1;
         let rows = conn.query("SELECT * FROM search_origin_packages_for_origin_v1($1, $2, $3, $4)",
                               &[&ops.get_origin(),
@@ -667,7 +667,7 @@ impl DataStore {
     pub fn create_origin_channel(&self,
                                  occ: &originsrv::OriginChannelCreate)
                                  -> Result<originsrv::OriginChannel> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(occ)?;
 
         let rows = conn.query("SELECT * FROM insert_origin_channel_v1($1, $2, $3)",
                               &[&(occ.get_origin_id() as i64),
@@ -693,7 +693,7 @@ impl DataStore {
     pub fn list_origin_channels(&self,
                                 oclr: &originsrv::OriginChannelListRequest)
                                 -> Result<originsrv::OriginChannelListResponse> {
-        let conn = self.pool.get()?;
+        let conn = self.pool.get(oclr)?;
         let rows = &conn.query("SELECT * FROM get_origin_channels_for_origin_v1($1)",
                                &[&(oclr.get_origin_id() as i64)])
                         .map_err(Error::OriginChannelList)?;

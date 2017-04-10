@@ -168,10 +168,8 @@ impl ScheduleMgr {
     }
 
     fn dispatch_group(&mut self, group: proto::Group) -> Result<()> {
-        for project in group
-                .get_projects()
-                .into_iter()
-                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+        let dispatchable = self.dispatchable_projects(&group)?;
+        for project in dispatchable {
             println!("Dispatching project: {:?}", project.get_name());
             assert!(project.get_state() == proto::ProjectState::NotStarted);
 
@@ -197,6 +195,17 @@ impl ScheduleMgr {
             }
         }
         Ok(())
+    }
+
+    fn dispatchable_projects(&mut self, group: &proto::Group) -> Result<Vec<proto::Project>> {
+        let mut projects = Vec::new();
+        for project in group
+                .get_projects()
+                .into_iter()
+                .filter(|x| x.get_state() == proto::ProjectState::NotStarted) {
+            projects.push(project.clone());
+        }
+        Ok(projects)
     }
 
     fn schedule_job(&mut self, group_id: u64, project_name: &str) -> Result<Job> {

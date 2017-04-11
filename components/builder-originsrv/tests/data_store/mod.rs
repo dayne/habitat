@@ -553,8 +553,7 @@ fn update_origin_project() {
 
 #[test]
 fn create_origin_package() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
@@ -616,8 +615,7 @@ fn create_origin_package() {
 
 #[test]
 fn get_origin_package() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
@@ -695,8 +693,7 @@ fn get_origin_package() {
 
 #[test]
 fn get_latest_package() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
@@ -772,9 +769,8 @@ fn get_latest_package() {
 }
 
 #[test]
-fn create_origin_channel() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+fn list_origin_package_for_origin() {
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
@@ -859,8 +855,7 @@ fn create_origin_channel() {
 
 #[test]
 fn list_origin_package_for_origin_unique() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
 
     let mut origin = originsrv::OriginCreate::new();
@@ -957,8 +952,7 @@ fn list_origin_package_for_origin_unique() {
 
 #[test]
 fn search_origin_package_for_origin() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
 
     let mut origin = originsrv::OriginCreate::new();
@@ -1056,8 +1050,7 @@ fn search_origin_package_for_origin() {
 
 #[test]
 fn create_origin_channel() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
@@ -1078,7 +1071,9 @@ fn create_origin_channel() {
         .expect("Failed to create origin public key");
 
     // Create new database connection
-    let conn = ds.pool.get().expect("Cannot get connection from pool");
+    let conn = ds.pool
+        .get(&oscc)
+        .expect("Cannot get connection from pool");
 
     let rows = conn.query("SELECT COUNT(*) FROM origin_channels", &[])
         .expect("Failed to query database for number of channels");
@@ -1088,8 +1083,7 @@ fn create_origin_channel() {
 
 #[test]
 fn list_origin_channel() {
-    let pool = pool!();
-    let ds = DataStore::from_pool(pool).expect("Failed to create data store from pool");
+    let ds = datastore_test!(DataStore);
     ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));

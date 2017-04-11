@@ -441,10 +441,10 @@ impl Routable for OriginPackageLatestGet {
 }
 
 impl Routable for OriginPackageCreate {
-    type H = String;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(String::from(self.get_ident().get_origin()))
+        Some(InstaId(self.get_origin_id()))
     }
 }
 
@@ -687,7 +687,7 @@ impl Routable for OriginChannelCreate {
     type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_owner_id()))
+        Some(InstaId(self.get_origin_id()))
     }
 }
 

@@ -554,7 +554,6 @@ fn update_origin_project() {
 #[test]
 fn create_origin_package() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
@@ -598,7 +597,7 @@ fn create_origin_package() {
     tdep_idents.push(tdep_ident2);
 
     let mut package = originsrv::OriginPackageCreate::new();
-    package.set_owner_id(5);
+    package.set_owner_id(1);
     package.set_origin_id(origin.get_id());
     package.set_ident(ident);
     package.set_checksum("checksum".to_string());
@@ -616,9 +615,8 @@ fn create_origin_package() {
 #[test]
 fn get_origin_package() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
-    origin.set_name(String::from("neurosis"));
+    origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
     let origin = ds.create_origin(&origin)
@@ -660,7 +658,7 @@ fn get_origin_package() {
     tdep_idents.push(tdep_ident2);
 
     let mut package = originsrv::OriginPackageCreate::new();
-    package.set_owner_id(5);
+    package.set_owner_id(1);
     package.set_origin_id(origin.get_id());
     package.set_ident(ident.clone());
     package.set_checksum("checksum".to_string());
@@ -679,7 +677,7 @@ fn get_origin_package() {
         .expect("Failed to get origin package")
         .unwrap();
 
-    assert_eq!(result.get_owner_id(), 5);
+    assert_eq!(result.get_owner_id(), 1);
     assert_eq!(result.get_origin_id(), origin.get_id());
     assert_eq!(result.get_ident().to_string(), ident.to_string());
     assert_eq!(result.get_checksum(), "checksum".to_string());
@@ -694,9 +692,8 @@ fn get_origin_package() {
 #[test]
 fn get_latest_package() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
-    origin.set_name(String::from("neurosis"));
+    origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
     let origin = ds.create_origin(&origin)
@@ -722,7 +719,7 @@ fn get_latest_package() {
     ident3.set_release("20170209064045".to_string());
 
     let mut package = originsrv::OriginPackageCreate::new();
-    package.set_owner_id(5);
+    package.set_owner_id(1);
     package.set_origin_id(origin.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -771,7 +768,6 @@ fn get_latest_package() {
 #[test]
 fn list_origin_package_for_origin() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
@@ -805,7 +801,7 @@ fn list_origin_package_for_origin() {
     ident4.set_release("20170209064045".to_string());
 
     let mut package = originsrv::OriginPackageCreate::new();
-    package.set_owner_id(5);
+    package.set_owner_id(1);
     package.set_origin_id(origin.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -856,7 +852,6 @@ fn list_origin_package_for_origin() {
 #[test]
 fn list_origin_package_for_origin_unique() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
 
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("core"));
@@ -896,7 +891,7 @@ fn list_origin_package_for_origin_unique() {
     ident4.set_release("20170209064045".to_string());
 
     let mut package = originsrv::OriginPackageCreate::new();
-    package.set_owner_id(5);
+    package.set_owner_id(1);
     package.set_origin_id(origin1.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -953,7 +948,6 @@ fn list_origin_package_for_origin_unique() {
 #[test]
 fn search_origin_package_for_origin() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
 
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("core"));
@@ -993,7 +987,7 @@ fn search_origin_package_for_origin() {
     ident4.set_release("20170209064045".to_string());
 
     let mut package = originsrv::OriginPackageCreate::new();
-    package.set_owner_id(5);
+    package.set_owner_id(1);
     package.set_origin_id(origin1.get_id());
     package.set_ident(ident1.clone());
     package.set_checksum("checksum".to_string());
@@ -1051,7 +1045,6 @@ fn search_origin_package_for_origin() {
 #[test]
 fn create_origin_channel() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);
@@ -1084,7 +1077,6 @@ fn create_origin_channel() {
 #[test]
 fn list_origin_channel() {
     let ds = datastore_test!(DataStore);
-    ds.setup().expect("Failed to migrate data");
     let mut origin = originsrv::OriginCreate::new();
     origin.set_name(String::from("neurosis"));
     origin.set_owner_id(1);

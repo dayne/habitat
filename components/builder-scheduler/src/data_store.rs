@@ -112,6 +112,7 @@ impl DataStore {
                                      id bigserial PRIMARY KEY,
                                      owner_id bigint,
                                      project_name text,
+                                     project_ident text,
                                      project_state text,
                                      job_id bigint DEFAULT 0,
                                      created_at timestamptz DEFAULT now(),
@@ -122,7 +123,8 @@ impl DataStore {
         migrator.migrate("scheduler",
                      r#"CREATE OR REPLACE FUNCTION insert_group_v1 (
                                 id bigint,
-                                project_names text[]
+                                project_names text[],
+                                project_idents text[]
                                 ) RETURNS void AS $$
                                     DECLARE
                                       n text;
@@ -131,11 +133,11 @@ impl DataStore {
                                         VALUES
                                             (id, 'Pending');
 
-                                        FOREACH n IN ARRAY project_names
+                                        FOR i IN array_lower(project_names, 1)..array_upper(project_names, 1)
                                         LOOP
-                                            INSERT INTO projects (owner_id, project_name, project_state)
+                                            INSERT INTO projects (owner_id, project_name, project_ident, project_state)
                                             VALUES
-                                                (id, n, 'NotStarted');
+                                                (id, project_names[i], project_idents[i], 'NotStarted');
                                         END LOOP;
                                     END
                                 $$ LANGUAGE plpgsql VOLATILE
@@ -246,10 +248,29 @@ impl DataStore {
         Ok(packages)
     }
 
-    pub fn create_group(&self, msg: &GroupCreate, project_names: Vec<String>) -> Result<Group> {
+    pub fn get_package(&self, ident: &str) -> Result<Package> {
         let conn = self.pool.get_shard(0)?;
 
-        assert!(!project_names.is_empty());
+        let rows = &conn.query("SELECT * FROM get_package_v1($1)", &[&ident])
+                        .map_err(Error::PackagesGet)?;
+
+        if rows.is_empty() {
+            error!("No package found");
+            return Err(Error::UnknownPackage);
+        }
+
+        assert!(rows.len() == 1);
+        let package = self.row_to_package(&rows.get(0))?;
+        Ok(package)
+    }
+
+    pub fn create_group(&self,
+                        msg: &GroupCreate,
+                        project_tuples: Vec<(String, String)>)
+                        -> Result<Group> {
+        let conn = self.pool.get_shard(0)?;
+
+        assert!(!project_tuples.is_empty());
 
         // TODO - the actual message will be used later for sharding
 
@@ -259,15 +280,19 @@ impl DataStore {
         let mut rng = thread_rng();
         let id = rng.gen::<u64>();
 
-        conn.execute("SELECT insert_group_v1($1, $2)",
-                     &[&(id as i64), &project_names])
+        let (project_names, project_idents): (Vec<_>, Vec<_>) =
+            project_tuples.iter().cloned().unzip();
+
+        conn.execute("SELECT insert_group_v1($1, $2, $3)",
+                     &[&(id as i64), &project_names, &project_idents])
             .map_err(Error::GroupCreate)?;
 
         let mut projects = RepeatedField::new();
 
-        for name in project_names {
+        for (name, ident) in project_tuples {
             let mut project = Project::new();
             project.set_name(name);
+            project.set_ident(ident);
             project.set_state(ProjectState::NotStarted);
             projects.push(project);
         }

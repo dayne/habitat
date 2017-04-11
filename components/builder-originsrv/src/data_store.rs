@@ -538,14 +538,18 @@ impl DataStore {
                                           -> Result<originsrv::OriginPackageListResponse> {
         let conn = self.pool.get(opl)?;
         let limit = opl.get_stop() - opl.get_start() + 1;
+        let mut ident = opl.get_ident().to_string();
+
+        // We don't want to return hits on partial strings
+        if ident.split("/").count() < 4 {
+            ident.push('/');
+        }
+
         let rows = conn.query("SELECT * FROM get_origin_packages_for_origin_v1($1, $2, $3)",
-                              &[&(opl.get_origin_id() as i64),
-                                &(limit as i64),
-                                &(opl.get_start() as i64)])
+                              &[&ident, &(limit as i64), &(opl.get_start() as i64)])
             .map_err(Error::OriginPackageList)?;
 
         let mut response = originsrv::OriginPackageListResponse::new();
-        response.set_origin_id(opl.get_origin_id());
         response.set_start(opl.get_start());
         response.set_stop(opl.get_start() + (rows.len() as u64) - 1);
         let mut idents = protobuf::RepeatedField::new();

@@ -1100,13 +1100,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
         (origin, ident, channel)
     };
 
-    // let's make sure this origin actually exists
-    match try!(get_origin(req, &origin)) {
-        Some(origin) => {
-            request.set_origin_id(origin.get_id());
-        }
-        None => return Ok(Response::with(status::NotFound)),
-    };
+    request.set_ident(OriginPackageIdent::from_str(ident.as_str()).expect("invalid package identifier"));
 
     match channel {
         Some(channel) => {
@@ -2192,6 +2186,7 @@ mod test {
         let package_req = msgs.get::<OriginPackageListRequest>().unwrap();
         assert_eq!(package_req.get_start(), 2);
         assert_eq!(package_req.get_stop(), 51);
+        assert_eq!(package_req.get_ident().to_string(), "org/".to_string());
     }
 
     #[test]

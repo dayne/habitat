@@ -16,6 +16,8 @@ use protobuf;
 use protocol::originsrv;
 use originsrv::data_store::DataStore;
 
+use std::str::FromStr;
+
 #[test]
 fn create_origin_poop() {
     let ds = datastore_test!(DataStore);
@@ -769,7 +771,7 @@ fn get_latest_package() {
 fn list_origin_package_for_origin() {
     let ds = datastore_test!(DataStore);
     let mut origin = originsrv::OriginCreate::new();
-    origin.set_name(String::from("neurosis"));
+    origin.set_name(String::from("core"));
     origin.set_owner_id(1);
     origin.set_owner_name(String::from("scottkelly"));
     let origin = ds.create_origin(&origin)
@@ -825,7 +827,7 @@ fn list_origin_package_for_origin() {
         .expect("Failed to create origin package");
 
     let mut opl = originsrv::OriginPackageListRequest::new();
-    opl.set_origin_id(origin.get_id());
+    opl.set_ident(originsrv::OriginPackageIdent::from_str("core/cacerts").unwrap());
     opl.set_start(1);
     opl.set_stop(2);
     let result = ds.list_origin_package_for_origin(&opl.clone())
@@ -833,7 +835,7 @@ fn list_origin_package_for_origin() {
     assert_eq!(result.get_idents().len(), 2);
     assert_eq!(result.get_start(), 1);
     assert_eq!(result.get_stop(), 2);
-    assert_eq!(result.get_count(), 4);
+    assert_eq!(result.get_count(), 3);
     let pkg1 = result.get_idents().iter().nth(0).unwrap();
     assert_eq!(pkg1.to_string(), ident2.to_string());
     let pkg2 = result.get_idents().iter().nth(1).unwrap();
@@ -843,10 +845,10 @@ fn list_origin_package_for_origin() {
     opl.set_stop(20);
     let result2 = ds.list_origin_package_for_origin(&opl)
         .expect("Could not get the packages from the database");
-    assert_eq!(result2.get_idents().len(), 3);
+    assert_eq!(result2.get_idents().len(), 2);
     assert_eq!(result2.get_start(), 1);
-    assert_eq!(result2.get_stop(), 3);
-    assert_eq!(result2.get_count(), 4);
+    assert_eq!(result2.get_stop(), 2);
+    assert_eq!(result2.get_count(), 3);
 }
 
 #[test]

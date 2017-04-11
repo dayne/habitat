@@ -83,12 +83,12 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     $$ LANGUAGE plpgsql STABLE"#)?;
     migrator.migrate("originsrv",
                      r#"CREATE OR REPLACE FUNCTION get_origin_packages_for_origin_v1 (
-                   op_origin_id bigint,
-                   op_limit bigint,
-                   op_offset bigint
+                    op_ident text,
+                    op_limit bigint,
+                    op_offset bigint
                  ) RETURNS TABLE(total_count bigint, ident text) AS $$
                     BEGIN
-                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origin_packages WHERE origin_id = op_origin_id
+                        RETURN QUERY SELECT COUNT(*) OVER () AS total_count, origin_packages.ident FROM origin_packages WHERE origin_packages.ident LIKE (op_ident  || '%')
                           ORDER BY ident ASC
                           LIMIT op_limit OFFSET op_offset;
                         RETURN;

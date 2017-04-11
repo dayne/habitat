@@ -226,7 +226,7 @@ message OriginPackage {
 }
 
 message OriginPackageListRequest {
-  optional uint64 origin_id = 1;
+  optional OriginPackageIdent ident = 1;
   optional uint64 start = 2;
   optional uint64 stop = 3;
 }
@@ -239,11 +239,10 @@ message OriginPackageSearchRequest {
 }
 
 message OriginPackageListResponse {
-  optional uint64 origin_id = 1;
-  optional uint64 start = 2;
-  optional uint64 stop = 3;
-  optional uint64 count = 4;
-  repeated OriginPackageIdent idents = 5;
+  optional uint64 start = 1;
+  optional uint64 stop = 2;
+  optional uint64 count = 3;
+  repeated OriginPackageIdent idents = 4;
 }
 
 message OriginPackageUniqueListRequest {

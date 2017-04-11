@@ -457,10 +457,10 @@ impl Routable for OriginPackageUniqueListRequest {
 }
 
 impl Routable for OriginPackageListRequest {
-    type H = InstaId;
+    type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(InstaId(self.get_origin_id()))
+        Some(String::from(self.get_ident().get_origin()))
     }
 }
 
@@ -638,12 +638,28 @@ impl FromStr for OriginPackageIdent {
     type Err = hab_core::Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        let items: Vec<&str> = value.split("/").collect();
+        let mut parts = value.split("/");
         let mut ident = OriginPackageIdent::new();
-        ident.set_origin(items[0].to_string());
-        ident.set_name(items[1].to_string());
-        ident.set_version(items[2].to_string());
-        ident.set_release(items[3].to_string());
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_origin(part.to_string());
+            }
+        }
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_name(part.to_string());
+            }
+        }
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_version(part.to_string());
+            }
+        }
+        if let Some(part) = parts.next() {
+            if part.len() > 0 {
+                ident.set_release(part.to_string());
+            }
+        }
         Ok(ident)
     }
 }

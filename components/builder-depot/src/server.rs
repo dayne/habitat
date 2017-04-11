@@ -1505,10 +1505,7 @@ fn render_package(pkg: &OriginPackage, should_cache: bool) -> IronResult<Respons
 }
 
 fn promote_package(req: &mut Request) -> IronResult<Response> {
-    let lock = req.get::<persistent::State<Depot>>()
-        .expect("depot not found");
-    let mut depot = lock.write().expect("depot write lock is poisoned");
-    let (channel, origin, mut ident, session_id) = {
+    let (channel, ident, session_id) = {
         let session = req.extensions.get::<Authenticated>().unwrap();
         let session_id = session.get_id();
 
@@ -1539,37 +1536,37 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
         };
 
         let mut ident = OriginPackageIdent::new();
+        ident.set_origin(origin);
         ident.set_name(pkg);
         ident.set_version(version);
         ident.set_release(release);
 
-        (channel, origin, ident, session_id)
+        (channel, ident, session_id)
     };
 
-    if try!(get_origin(req, &origin)).is_none() {
-        return Ok(Response::with(status::NotFound));
-    }
-    ident.set_origin(origin);
-
-    match depot
-              .datastore
-              .channels
-              .channel_exists(&ident.get_origin(), &channel) {
-        true => {
+    let mut channel_req = OriginChannelGet::new();
+    channel_req.set_origin_name(ident.get_origin().to_string());
+    channel_req.set_name(channel);
+    match route_message::<OriginChannelGet, OriginChannel>(req, &channel_req) {
+        Ok(origin_channel) => {
             if !try!(check_origin_access(req, session_id, &ident.get_origin())) {
                 return Ok(Response::with(status::Forbidden));
             }
 
             let mut request = OriginPackageGet::new();
-            request.set_ident(ident);
+            request.set_ident(ident.clone());
             match route_message::<OriginPackageGet, OriginPackage>(req, &request) {
                 Ok(package) => {
-                    depot
-                        .datastore
-                        .channels
-                        .associate(&channel, &package)
-                        .unwrap();
-                    Ok(Response::with(status::Ok))
+                    let mut promote = OriginPackagePromote::new();
+                    promote.set_channel_id(origin_channel.get_id());
+                    promote.set_ident(ident);
+                    match route_message::<OriginPackagePromote, NetOk>(req, &promote) {
+                        Ok(_) => Ok(Response::with(status::Ok)),
+                        Err(err) => {
+                            error!("Error promoting package, {}", err);
+                            Ok(render_net_error(&err))
+                        }
+                    }
                 }
                 Err(err) => {
                     match err.get_code() {
@@ -1582,7 +1579,15 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
                 }
             }
         }
-        false => Ok(Response::with(status::NotFound)),
+        Err(err) => {
+            match err.get_code() {
+                ErrCode::ENTITY_NOT_FOUND => Ok(Response::with((status::NotFound))),
+                _ => {
+                    error!("promote_package:1, err={:?}", err);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
+        }
     }
 }
 
@@ -2513,5 +2518,57 @@ mod test {
         let channel_req = msgs.get::<OriginChannelCreate>().unwrap();
         assert_eq!(channel_req.get_origin_name(), "neurosis");
         assert_eq!(channel_req.get_name(), "my_channel");
+    }
+
+    #[test]
+    fn promote_package() {
+        let mut broker: TestableBroker = Default::default();
+
+        //setup our full package
+        let mut ident = OriginPackageIdent::new();
+        ident.set_origin("org".to_string());
+        ident.set_name("name".to_string());
+        ident.set_version("1.1.1".to_string());
+        ident.set_release("20170101010101".to_string());
+
+        let mut package = OriginPackage::new();
+        package.set_ident(ident.clone());
+        package.set_checksum("checksum".to_string());
+        package.set_manifest("manifest".to_string());
+        package.set_config("config".to_string());
+        package.set_target("x86_64-linux".to_string());
+        broker.setup::<OriginPackageGet, OriginPackage>(&package);
+
+        let mut channel = OriginChannel::new();
+        channel.set_id(6000);
+        channel.set_name("my_channel".to_string());
+        broker.setup::<OriginChannelGet, OriginChannel>(&channel);
+
+        let mut access_res = CheckOriginAccessResponse::new();
+        access_res.set_has_access(true);
+        broker.setup::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&access_res);
+
+        broker.setup::<OriginPackagePromote, NetOk>(&NetOk::new());
+
+        let (response, msgs) = iron_request(method::Put,
+                                            "http://localhost/channels/org/my_channel/pkgs/name/1.1.1/20170101010101/promote",
+                                            &mut Vec::new(),
+                                            Headers::new(),
+                                            broker);
+
+        let response = response.unwrap();
+        assert_eq!(response.status, Some(status::Ok));
+
+        //assert we sent the corect range to postgres
+        let channel_get = msgs.get::<OriginChannelGet>().unwrap();
+        assert_eq!(channel_get.get_origin_name(), "org".to_string());
+        assert_eq!(channel_get.get_name(), "my_channel".to_string());
+
+        let package_get = msgs.get::<OriginPackageGet>().unwrap();
+        assert_eq!(package_get.get_ident().to_string(), ident.to_string());
+
+        let promote = msgs.get::<OriginPackagePromote>().unwrap();
+        assert_eq!(promote.get_channel_id(), 6000);
+        assert_eq!(promote.get_ident().to_string(), ident.to_string());
     }
 }

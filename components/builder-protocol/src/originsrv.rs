@@ -111,6 +111,14 @@ impl Routable for OriginChannelCreate {
     }
 }
 
+impl Routable for OriginChannelGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_origin_name().to_string())
+    }
+}
+
 impl Serialize for OriginChannelIdent {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
@@ -521,6 +529,14 @@ impl Routable for OriginPackageLatestGet {
 }
 
 impl Routable for OriginPackageListRequest {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(String::from(self.get_ident().get_origin()))
+    }
+}
+
+impl Routable for OriginPackagePromote {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {

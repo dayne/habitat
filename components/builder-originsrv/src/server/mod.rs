@@ -99,6 +99,7 @@ impl Dispatcher for Worker {
             }
             "OriginPackageSearchRequest" => handlers::origin_package_search(message, sock, state),
             "OriginChannelCreate" => handlers::origin_channel_create(message, sock, state),
+            "OriginChannelGet" => handlers::origin_channel_get(message, sock, state),
             "OriginChannelListRequest" => handlers::origin_channel_list(message, sock, state),
             _ => {
                 debug!("dispatch: unhandled message: {}", message.message_id());

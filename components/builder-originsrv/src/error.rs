@@ -38,6 +38,9 @@ pub enum Error {
     IO(io::Error),
     NetError(hab_net::Error),
     OriginCreate(postgres::error::Error),
+    OriginChannelCreate(postgres::error::Error),
+    OriginChannelGet(postgres::error::Error),
+    OriginChannelList(postgres::error::Error),
     OriginCheckAccess(postgres::error::Error),
     OriginGet(postgres::error::Error),
     OriginMemberList(postgres::error::Error),
@@ -66,8 +69,6 @@ pub enum Error {
     OriginAccountInOrigin(postgres::error::Error),
     SyncInvitations(postgres::error::Error),
     SyncInvitationsUpdate(postgres::error::Error),
-    OriginChannelCreate(postgres::error::Error),
-    OriginChannelList(postgres::error::Error),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -95,6 +96,13 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::OriginCreate(ref e) => format!("Error creating origin in database, {}", e),
+            Error::OriginChannelCreate(ref e) => {
+                format!("Error creating channel in database, {}", e)
+            }
+            Error::OriginChannelGet(ref e) => format!("Error getting channel from database, {}", e),
+            Error::OriginChannelList(ref e) => {
+                format!("Error listing channels for an origin from database, {}", e)
+            }
             Error::OriginCheckAccess(ref e) => {
                 format!("Error checking access to origin in database, {}", e)
             }
@@ -179,12 +187,6 @@ impl fmt::Display for Error {
             Error::SyncInvitationsUpdate(ref e) => {
                 format!("Error update invitation sync for account, {}", e)
             }
-            Error::OriginChannelCreate(ref e) => {
-                format!("Error checking if this account is in an origin, {}", e)
-            }
-            Error::OriginChannelList(ref e) => {
-                format!("Error checking if this account is in an origin, {}", e)
-            }
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -205,6 +207,9 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::OriginCreate(ref err) => err.description(),
+            Error::OriginChannelCreate(ref err) => err.description(),
+            Error::OriginChannelGet(ref err) => err.description(),
+            Error::OriginChannelList(ref err) => err.description(),
             Error::OriginCheckAccess(ref err) => err.description(),
             Error::OriginGet(ref err) => err.description(),
             Error::OriginMemberList(ref err) => err.description(),
@@ -233,8 +238,6 @@ impl error::Error for Error {
             Error::OriginAccountInOrigin(ref err) => err.description(),
             Error::SyncInvitations(ref err) => err.description(),
             Error::SyncInvitationsUpdate(ref err) => err.description(),
-            Error::OriginChannelCreate(ref err) => err.description(),
-            Error::OriginChannelList(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }

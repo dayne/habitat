@@ -358,6 +358,26 @@ pub fn origin_channel_create(req: &mut Envelope,
     Ok(())
 }
 
+pub fn origin_channel_get(req: &mut Envelope,
+                          sock: &mut zmq::Socket,
+                          state: &mut ServerState)
+                          -> Result<()> {
+    let msg: proto::OriginChannelGet = try!(req.parse_msg());
+    match state.datastore.get_origin_channel(&msg) {
+        Ok(Some(ref channel)) => try!(req.reply_complete(sock, channel)),
+        Ok(None) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-channel-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginChannelGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-channel-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_channel_list(req: &mut Envelope,
                            sock: &mut zmq::Socket,
                            state: &mut ServerState)

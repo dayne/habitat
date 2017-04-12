@@ -717,6 +717,22 @@ impl DataStore {
         response.set_channels(channels);
         Ok(response)
     }
+
+    pub fn get_origin_channel(&self,
+                              ocg: &originsrv::OriginChannelGet)
+                              -> Result<Option<originsrv::OriginChannel>> {
+        let conn = self.pool.get(ocg)?;
+        let rows = &conn.query("SELECT * FROM get_origin_channel_v1($1, $2)",
+                               &[&ocg.get_origin_name(), &ocg.get_name()])
+                        .map_err(Error::OriginChannelGet)?;
+
+        if rows.len() != 0 {
+            let row = rows.get(0);
+            Ok(Some(self.row_to_origin_channel(row)))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 fn sync_invitations(pool: Pool) -> DbResult<EventOutcome> {

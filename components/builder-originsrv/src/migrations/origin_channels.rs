@@ -28,7 +28,18 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     owner_id bigint,
                     name text,
                     created_at timestamptz DEFAULT now(),
-                    updated_at timestamptz
+                    updated_at timestamptz,
+                    UNIQUE(origin_id, name)
+             )"#)?;
+    migrator
+        .migrate("originsrv",
+                 r#"CREATE TABLE origin_channel_packages (
+                    channel_id bigint REFERENCES origin_channels(id),
+                    package_id bigint REFERENCES origin_packages(id),
+                    ident text,
+                    created_at timestamptz DEFAULT now(),
+                    updated_at timestamptz,
+                    PRIMARY KEY (channel_id, package_id)
              )"#)?;
     migrator
         .migrate("originsrv",
@@ -46,6 +57,19 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                  $$ LANGUAGE plpgsql VOLATILE"#)?;
     migrator
         .migrate("originsrv",
+                 r#"CREATE OR REPLACE FUNCTION get_origin_channel_v1 (
+                    ocg_origin text,
+                    ocg_name text
+                 ) RETURNS SETOF origin_channels AS $$
+                    BEGIN
+                        RETURN QUERY SELECT origin_channels.*
+                          FROM origins INNER JOIN origin_channels ON origins.id = origin_channels.origin_id
+                          WHERE origins.name=ocg_origin AND origin_channels.name = ocg_name;
+                        RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator
+        .migrate("originsrv",
                  r#"CREATE OR REPLACE FUNCTION get_origin_channels_for_origin_v1 (
                    occ_origin_id bigint
                  ) RETURNS SETOF origin_channels AS $$
@@ -53,6 +77,16 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                         RETURN QUERY SELECT * FROM origin_channels WHERE origin_id = occ_origin_id
                           ORDER BY name ASC;
                         RETURN;
+                    END
+                    $$ LANGUAGE plpgsql STABLE"#)?;
+    migrator.migrate("originsrv",
+                     r#"CREATE OR REPLACE FUNCTION promote_origin_package_v1 (
+                    opp_channel_id bigint,
+                    opp_package_id bigint,
+                    opp_ident text
+                 ) RETURNS void AS $$
+                    BEGIN
+                        INSERT INTO origin_channel_packages (channel_id, package_id, ident) VALUES (opp_channel_id, opp_package_id, opp_ident);
                     END
                     $$ LANGUAGE plpgsql STABLE"#)?;
     Ok(())

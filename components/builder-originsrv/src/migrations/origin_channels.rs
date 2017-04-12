@@ -88,6 +88,6 @@ pub fn migrate(migrator: &mut Migrator) -> Result<()> {
                     BEGIN
                         INSERT INTO origin_channel_packages (channel_id, package_id, ident) VALUES (opp_channel_id, opp_package_id, opp_ident);
                     END
-                    $$ LANGUAGE plpgsql STABLE"#)?;
+                 $$ LANGUAGE plpgsql VOLATILE"#)?;
     Ok(())
 }

@@ -467,6 +467,22 @@ pub fn origin_package_list(req: &mut Envelope,
     Ok(())
 }
 
+pub fn origin_package_promote(req: &mut Envelope,
+                              sock: &mut zmq::Socket,
+                              state: &mut ServerState)
+                              -> Result<()> {
+    let msg: proto::OriginPackagePromote = try!(req.parse_msg());
+    match state.datastore.promote_origin_package(&msg) {
+        Ok(()) =>  try!(req.reply_complete(sock, &net::NetOk::new())),
+        Err(err) => {
+            error!("OriginPackagePromote, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-package-promote:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
 pub fn origin_package_unique_list(req: &mut Envelope,
                                   sock: &mut zmq::Socket,
                                   state: &mut ServerState)

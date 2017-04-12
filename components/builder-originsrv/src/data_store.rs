@@ -733,6 +733,17 @@ impl DataStore {
             Ok(None)
         }
     }
+
+    pub fn promote_origin_package(&self, opp: &originsrv::OriginPackagePromote) -> Result<()> {
+        let conn = self.pool.get(opp)?;
+        &conn.query("SELECT * FROM promote_origin_package_v1($1, $2, $3)",
+                               &[&(opp.get_channel_id() as i64),
+                                 &(opp.get_package_id() as i64),
+                                 &opp.get_ident().to_string()])
+                        .map_err(Error::OriginPackagePromote)?;
+
+        Ok(())
+    }
 }
 
 fn sync_invitations(pool: Pool) -> DbResult<EventOutcome> {

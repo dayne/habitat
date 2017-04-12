@@ -1559,6 +1559,7 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
                 Ok(package) => {
                     let mut promote = OriginPackagePromote::new();
                     promote.set_channel_id(origin_channel.get_id());
+                    promote.set_package_id(package.get_id());
                     promote.set_ident(ident);
                     match route_message::<OriginPackagePromote, NetOk>(req, &promote) {
                         Ok(_) => Ok(Response::with(status::Ok)),
@@ -2532,6 +2533,7 @@ mod test {
         ident.set_release("20170101010101".to_string());
 
         let mut package = OriginPackage::new();
+        package.set_id(5000);
         package.set_ident(ident.clone());
         package.set_checksum("checksum".to_string());
         package.set_manifest("manifest".to_string());
@@ -2569,6 +2571,7 @@ mod test {
 
         let promote = msgs.get::<OriginPackagePromote>().unwrap();
         assert_eq!(promote.get_channel_id(), 6000);
+        assert_eq!(promote.get_package_id(), 5000);
         assert_eq!(promote.get_ident().to_string(), ident.to_string());
     }
 }
